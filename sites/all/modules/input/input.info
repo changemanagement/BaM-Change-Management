@@ -1,0 +1,6 @@
+; $Id$
+name = Input: Examples of using the Form API
+description = Example module to demonstrate the Form API.
+package = Build a Module
+core = 7.x
+files[] = input.module

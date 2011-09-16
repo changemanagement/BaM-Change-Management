@@ -1,0 +1,210 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Demonstrates use of the Form API.
+ *
+ * For a full list of elements and attributes, see:
+ * http://api.drupal.org/api/drupal/developer--topics--forms_api_reference.html/7
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function input_menu() {
+  $items['input/examples'] = array(
+    'title' => 'Form API examples',
+    'description' => 'Example of using the Form API.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('input_simple_form'),
+    'access callback' => TRUE,
+  );
+  $items['input/examples/simple'] = array(
+    'title' => 'Simple',
+    'description' => 'Simple example using a page callback.',
+    'page callback' => 'input_simple_page',
+    'access callback' => TRUE,
+  );
+  $items['input/examples/more'] = array(
+    'title' => 'More elements and attributes',
+    'description' => 'More complex example with additional form elements and attributes.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('input_more_form'),
+    'access callback' => TRUE,
+    'weight' => 1,
+  );
+  $items['input/search-autocomplete'] = array(
+    'description' => 'A callback for our search autocomplete.',
+    'page callback' => 'input_search_autocomplete',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  
+  return $items;
+}
+
+
+/**
+ * A simple form.
+ */
+function input_simple_form($form, &$form_submit) {
+  $form['color'] = array(
+    '#title' => t('Favorite color'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#description' => t('What is your favorite color? Blue? No, wait-'),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+  return $form;
+}
+
+
+/**
+ * Page demonstrating embedding a form on a page.
+ */
+function input_simple_page() {
+  $build = array(
+    'header_text' => array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('To add additional content to a form page, you can use a page callback and return a render array like this.') . '</p>',
+    ),
+    'example_form' => drupal_get_form('input_simple_form'),
+  );
+  return $build;
+}
+
+
+/**
+ * Validation for input_simple_form().
+ */
+function input_simple_form_validate($form, &$form_state) {
+  
+  // Check for the color 'blue'.
+  if ($form_state['values']['color'] == 'blue') {
+    form_set_error('color', 'Sorry, your favorite color is actually yellow.');
+  }
+}
+
+
+/**
+ * Submit function for input_simple_form().
+ */
+function input_simple_form_submit($form, &$form_state) {
+  
+  // Display a message upon successful submission.
+  drupal_set_message(t("I like @color, too!", array('@color' => $form_state['values']['color'])));
+}
+
+
+/**
+ * A longer form with more elements and attributes.
+ */
+function input_more_form($form, &$form_submit) {
+  
+  $form['computer'] = array(
+    '#title' => t('Do you own a computer?'),
+    '#type' => 'radios',
+    '#options' => array('yes' => t('Yes'), 'no' => t('No')),
+    '#required' => TRUE,
+  );
+  
+  // Demonstrating a fieldset.
+  $form['computer_stats'] = array(
+    '#title' => 'Computer stats',
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="computer"]' => array('value' => 'yes'),
+      ),
+    ),
+  );
+  $form['computer_stats']['thickness'] = array(
+    '#title' => t('Thickness'),
+    '#type' => 'textfield',
+    '#field_prefix' => t('Approx.'),
+    '#field_suffix' => t('inches'),
+    '#maxlength' => 3,
+    '#size' => 3,
+  );
+  $form['computer_stats']['heft'] = array(
+    '#title' => t('Heft'),
+    '#type' => 'select',
+    '#options' => array(
+      'small' => t('I could throw this thing a long way.'),
+      'medium' => t('I would rather drop it than throw it.'),
+      'heavy' => t('I need help to move it.'),
+    ),
+  );
+  
+  $form['help'] = array(
+    '#type' => 'markup',
+    '#markup' => '<p>' . t('For more information about elements and attributes, see the <a href="!url">Form API reference page</a>', array('!url' => url('http://api.drupal.org/api/drupal/developer--topics--forms_api_reference.html/7'))) . '.</p>',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  
+  return $form;
+}
+
+
+/**
+ * Implements hook_form_alter().
+ *
+ * To find the $form_id, you can ether add an echo $form_id; to print
+ * a list of ids to the browser, or use Firebug to inspect the element and
+ * conver the 'id' of the form to use underscores.
+ */
+function input_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'search_block_form':
+      $form['#submit'][] = 'input_search_submit';
+      
+      // A couple built-in autocomplete paths you can use:
+      // user/autocomplete - Autocompletes usernames
+      // taxonomy/autocomplete - Autocompletes taxonomy terms as a comma-separated list
+      $form['search_block_form']['#autocomplete_path'] = 'input/search-autocomplete';
+      break;
+  }
+  return;
+}
+
+
+/**
+ * Submission function for search form.
+ *
+ * We are storing a search history which we can use for a later example of autocompletion.
+ */
+function input_search_submit($form, &$form_state) {
+  $phrase = $form_state['values']['search_block_form'];
+  $search_history = variable_get('input_search_history', array());
+  $search_history[] = $phrase;
+  variable_set('input_search_history', $search_history);
+  drupal_set_message(t('Your search phrase %phrase has been saved to history.', array('%phrase' => $phrase)));
+}
+
+
+/**
+ * Menu callback; Retrieve a JSON object containing autocomplete suggestions for search.
+ *
+ * This loops through the 'input_search_history' variable and finds matches to currently
+ * typed search phrase. Then, drupal_json_output is called to format the result as json,
+ * which the autocomplete script expects.
+ */
+function input_search_autocomplete($string = '') {
+  $matches = array();
+  $search_history = variable_get('input_search_history', array());
+  foreach ($search_history as $phrase) {
+    if (stristr($phrase, $string)) {
+      $matches[$phrase] = $phrase;
+    }
+  }
+  drupal_json_output($matches);
+}
