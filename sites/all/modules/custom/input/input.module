@@ -73,3 +73,13 @@ function input_simple_form_validate($form, &$form_state) {
     form_set_error('color', 'Sorry, your favorite color is actually yellow.');
   }
 }
+
+
+/**
+ * Submit function for input_simple_form().
+ */
+function input_simple_form_submit($form, &$form_state) {
+  
+  // Display a message upon successful submission.
+  drupal_set_message(t("I like @color, too!", array('@color' => $form_state['values']['color'])));
+}
