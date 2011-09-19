@@ -1,0 +1,93 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Example module to demonstrate using the menu system.
+ * 
+ * For more information about hook_menu(), see:
+ * http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_menu/7
+ *
+ * In this file, we are demonstrating how to add secondary tabs to a menu item.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function pages_menu() {
+  $items['pages'] = array(
+    'title' => 'Menu system examples',
+    'description' => 'Menu system example that returns a string.',
+    'page callback' => 'pages_string',
+    'access callback' => TRUE,
+  );
+  $items['pages/default'] = array(
+    'title' => 'String',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['pages/render-array'] = array(
+    'title' => 'Render array',
+    'description' => 'Menu system example using a render array.',
+    'page callback' => 'pages_render_array',
+    'access arguments' => array('access content'),
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['pages/render-array/tab1'] = array(
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'title' => 'Tab 1',
+  );
+  $items['pages/render-array/tab2'] = array(
+    'title' => 'Tab 2',
+    'description' => 'Demonstrating secondary tabs.',
+    'page callback' => 'pages_render_array',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+
+/**
+ * Menu callback; page callback returning a simple string.
+ */
+function pages_string() {
+  $output = '
+    <p>Pages can be returned as strings.</p>
+    <p>Pages can be returned as <em>render arrays</em>.</p>';
+  $output .= theme('item_list', array(
+    'title' => 'Render arrays are better because...',
+    'items' => array(
+      'They allow content to be modified as an array.',
+      'Arrays are a lot easier to modify than HTML.',
+    ))
+  );
+
+  return $output;
+}
+
+
+/**
+ * Menu callback; page callback returning a render array.
+ */
+function pages_render_array() {
+  $build = array(
+    'string_paragraph' => array(
+      '#type' => 'markup',
+      '#markup' => '<p>Pages can be returned as strings.</p>',
+    ),
+    'render_array_paragraph' => array(
+      '#type' => 'markup',
+      '#markup' => '<p>Pages can be returned as <em>render arrays</em>.</p>',
+    ),
+    'why_render_arrays' => array(
+      '#items' => array('They allow content to be modified as an array.', 'Arrays are a lot easier to modify than HTML.'),
+      '#title' => 'Render arrays are better because...',
+      '#theme' => 'item_list',
+    ),
+  );
+
+  return $build;
+}

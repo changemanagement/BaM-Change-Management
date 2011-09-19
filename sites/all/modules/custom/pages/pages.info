@@ -1,0 +1,7 @@
+; $Id$
+name = Pages: Menu system examples
+description = Example module to demonstrate using the menu system.
+package = Build a Module
+core = 7.x
+files[] = pages.module
+files[] = pages.admin.inc
