@@ -61,3 +61,15 @@ function input_simple_page() {
   );
   return $build;
 }
+
+
+/**
+ * Validation for input_simple_form().
+ */
+function input_simple_form_validate($form, &$form_state) {
+  
+  // Check for the color 'blue'.
+  if ($form_state['values']['color'] == 'blue') {
+    form_set_error('color', 'Sorry, your favorite color is actually yellow.');
+  }
+}
