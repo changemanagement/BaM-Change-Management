@@ -111,6 +111,11 @@ function input_more_form($form, &$form_submit) {
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="computer"]' => array('value' => 'yes'),
+      ),
+    ),
   );
   $form['computer_stats']['thickness'] = array(
     '#title' => t('Thickness'),
