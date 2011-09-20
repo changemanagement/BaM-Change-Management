@@ -26,6 +26,14 @@ function input_menu() {
     'page callback' => 'input_simple_page',
     'access callback' => TRUE,
   );
+  $items['input/examples/more'] = array(
+    'title' => 'More elements and attributes',
+    'description' => 'More complex example with additional form elements and attributes.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('input_more_form'),
+    'access callback' => TRUE,
+    'weight' => 1,
+  );
   return $items;
 }
 
@@ -82,4 +90,54 @@ function input_simple_form_submit($form, &$form_state) {
   
   // Display a message upon successful submission.
   drupal_set_message(t("I like @color, too!", array('@color' => $form_state['values']['color'])));
+}
+
+
+/**
+ * A longer form with more elements and attributes.
+ */
+function input_more_form($form, &$form_submit) {
+  
+  $form['computer'] = array(
+    '#title' => t('Do you own a computer?'),
+    '#type' => 'radios',
+    '#options' => array('yes' => t('Yes'), 'no' => t('No')),
+    '#required' => TRUE,
+  );
+  
+  // Demonstrating a fieldset.
+  $form['computer_stats'] = array(
+    '#title' => 'Computer stats',
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['computer_stats']['thickness'] = array(
+    '#title' => t('Thickness'),
+    '#type' => 'textfield',
+    '#field_prefix' => t('Approx.'),
+    '#field_suffix' => t('inches'),
+    '#maxlength' => 3,
+    '#size' => 3,
+  );
+  $form['computer_stats']['heft'] = array(
+    '#title' => t('Heft'),
+    '#type' => 'select',
+    '#options' => array(
+      'small' => t('I could throw this thing a long way.'),
+      'medium' => t('I would rather drop it than throw it.'),
+      'heavy' => t('I need help to move it.'),
+    ),
+  );
+  
+  $form['help'] = array(
+    '#type' => 'markup',
+    '#markup' => '<p>' . t('For more information about elements and attributes, see the <a href="!url">Form API reference page</a>', array('!url' => url('http://api.drupal.org/api/drupal/developer--topics--forms_api_reference.html/7'))) . '.</p>',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  
+  return $form;
 }
