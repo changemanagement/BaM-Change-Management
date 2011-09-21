@@ -1,0 +1,6 @@
+; $Id$
+name = Assets
+description = Example module to demonstrate how to work with the File API.
+package = Build a Module
+core = 7.x
+files[] = assets.module

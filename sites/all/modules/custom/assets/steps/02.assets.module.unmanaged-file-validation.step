@@ -1,0 +1,65 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Demonstrates how to work with files and the File API.
+ */
+
+
+/**
+ * Implements hook_menu().
+ */
+function assets_menu() {
+  // Menu items for unmanaged file examples.
+  $items['assets/unmanaged'] = array(
+    'title' => 'Unmanaged file example',
+    'description' => 'Examples of using processing an unmanaged file.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('assets_unmanaged_file_form'),
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+
+/**
+ * Returns form array with an example file input for an unmanaged file.
+ */
+function assets_unmanaged_file_form($form, &$form_state) {
+
+  // Required for forms with file inputs.
+  $form['#attributes'] = array('enctype' => "multipart/form-data");
+
+  // Example of an unmanaged file
+  $form['unmanaged_file'] = array(
+    '#title' => t('Unmanaged file example'),
+    '#type' => 'file'
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+  return $form;
+}
+
+
+/**
+ * Validation for unmanaged file form.
+ */
+function assets_unmanaged_file_form_validate($form, &$form_state) {
+
+  $file = file_save_upload('unmanaged_file');
+
+  if (isset($file)) {
+    // File upload was attempted.
+    if ($file) {
+      // Put the temporary file in form_values so we can save it on submit.
+      $form_state['values']['unmanaged_file'] = $file;
+    }
+    else {
+      form_set_error('unmanaged_file', t('The file could not be uploaded.'));
+    }
+  }
+}
