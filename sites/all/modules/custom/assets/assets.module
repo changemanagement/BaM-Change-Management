@@ -43,3 +43,23 @@ function assets_unmanaged_file_form($form, &$form_state) {
   );
   return $form;
 }
+
+
+/**
+ * Validation for unmanaged file form.
+ */
+function assets_unmanaged_file_form_validate($form, &$form_state) {
+
+  $file = file_save_upload('unmanaged_file');
+
+  if (isset($file)) {
+    // File upload was attempted.
+    if ($file) {
+      // Put the temporary file in form_values so we can save it on submit.
+      $form_state['values']['unmanaged_file'] = $file;
+    }
+    else {
+      form_set_error('unmanaged_file', t('The file could not be uploaded.'));
+    }
+  }
+}
