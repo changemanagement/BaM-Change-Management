@@ -3,7 +3,7 @@
 
 /**
  * @file
- * Demonstrates use of the Form API.
+ * Demonstrates use of the Form API. This change will cause a conflict.
  *
  * For a full list of elements and attributes, see:
  * http://api.drupal.org/api/drupal/developer--topics--forms_api_reference.html/7
