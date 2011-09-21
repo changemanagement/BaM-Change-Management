@@ -3,7 +3,7 @@
 
 /**
  * @file
- * Demonstrates use of the Form API. This is a change we want to keep.
+ * Demonstrates use of the Form API.
  *
  * For a full list of elements and attributes, see:
  * http://api.drupal.org/api/drupal/developer--topics--forms_api_reference.html/7
@@ -103,7 +103,7 @@ function input_simple_form_submit($form, &$form_state) {
 /**
  * A longer form with more elements and attributes.
  */
-function input_more_form($form, &$form_submit) {
+function input_more_form($form, &$form_state) {
   
   $form['computer'] = array(
     '#title' => t('Do you own a computer?'),
@@ -111,8 +111,7 @@ function input_more_form($form, &$form_submit) {
     '#options' => array('yes' => t('Yes'), 'no' => t('No')),
     '#required' => TRUE,
   );
-  
-  // Demonstrating a fieldset.
+
   $form['computer_stats'] = array(
     '#title' => 'Computer stats',
     '#type' => 'fieldset',
@@ -142,16 +141,44 @@ function input_more_form($form, &$form_submit) {
     ),
   );
   
-  $form['help'] = array(
-    '#type' => 'markup',
-    '#markup' => '<p>' . t('For more information about elements and attributes, see the <a href="!url">Form API reference page</a>', array('!url' => url('http://api.drupal.org/api/drupal/developer--topics--forms_api_reference.html/7'))) . '.</p>',
+  // Added AJAX callback.
+  $form['computer_stats']['os'] = array(
+    '#title' => t('Operating system'),
+    '#type' => 'select',
+    '#options' => drupal_map_assoc(array('', t('OSX'), t('Linux'), t('Windows'))),
+    '#ajax' => array(
+      'callback' => 'input_os_verify_ajax_callback',
+      'wrapper' => 'input_os_verify_wrapper',
+     ),
   );
+  
+  // Setting an empty element with a wrapper to be populated.
+  $form['computer_stats']['os_verify'] = array(
+    '#type' => 'markup',
+    '#prefix' => '<div id="input_os_verify_wrapper">',
+    '#suffix' => '</div>',
+  );
+  
+  // When submitted, check for value of OS, and populate os_verify.
+  if (isset($form_state['values']['os'])) { // Fixed this line, was throwing an error in the original video code.
+    $form['computer_stats']['os_verify']['#type'] = 'checkbox';
+    $form['computer_stats']['os_verify']['#title'] = t('Are you sure you are using @os?', array('@os' => $form_state['values']['os']));
+  }
+  
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
   
   return $form;
+}
+
+
+/**
+ * AJAX callback for OS verification.
+ */
+function input_os_verify_ajax_callback($form, $form_state) {
+  return $form['computer_stats']['os_verify'];
 }
 
 
