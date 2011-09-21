@@ -49,8 +49,20 @@ function assets_unmanaged_file_form($form, &$form_state) {
  * Validation for unmanaged file form.
  */
 function assets_unmanaged_file_form_validate($form, &$form_state) {
+  
+  $validators = array(
+    'file_validate_extensions' => array('jpg jpeg png gif'),
+    'assets_validate_not_in_filename' => array('test.'),
+  );
 
-  $file = file_save_upload('unmanaged_file');
+  // Additional validation functions in core:
+  // file_validate_size();
+  // file_validate_is_image();
+  // file_validate_extensions();
+  // file_validate_image_resolution();
+  // file_validate_name_length();
+  
+  $file = file_save_upload('unmanaged_file', $validators, FALSE, FILE_EXISTS_REPLACE);
 
   if (isset($file)) {
     // File upload was attempted.
@@ -74,6 +86,18 @@ function assets_file_validate(&$file) {
   $errors = array();
   if (strpos($file->filename, 'test.') !== FALSE) {
     $errors[] = 'The filename "test" is reserved, please change the filename and try again.';
+  }
+  return $errors;
+}
+
+
+/**
+ * Validation function for file to test that a file does not certain a certain string.
+ */
+function assets_validate_not_in_filename(&$file, $string = 'test.') {
+  $errors = array();
+  if (strpos($file->filename, $string) !== FALSE) {
+    $errors[] = t('The string "%string" is reserved, please remove this string from your filename and try again.', array('%string' => $string));
   }
   return $errors;
 }
