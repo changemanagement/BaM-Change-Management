@@ -1,0 +1,197 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Examples of using the User API.
+ */
+
+
+/**
+ * Implements hook_form_alter().
+ */
+function persons_form_alter(&$form, &$form_submit, $form_id) {
+  
+  // Add checkbox to allow users to select whether to store search history.
+  if (isset($form['#user_category']) && $form['#user_category'] == 'account') { // Added isset after recording.
+    $account = $form['#user'];
+    $form['search_history'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Search history'),
+      '#weight' => 4,
+    );
+    $form['search_history']['store_search_history'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Store search history'),
+      '#description' => t('Would you like to store search history and display a list on your user page?'),
+      '#default_value' => isset($account->data['store_search_history']) ? $account->data['store_search_history'] : 0,
+    );
+  }
+
+  // Add a submission function to store search history.
+  if ($form_id == 'search_block_form') {
+    $form['#submit'][] = 'persons_save_search_submit';
+  }
+}
+
+
+/**
+ * A registered submission function for the search form.
+ */
+function persons_save_search_submit($form, &$form_submit) {
+  global $user;
+
+  // Make sure we're not editing the $user variable directly.
+  $account = $user;
+
+  // If the user hasn't chosen to store history, return.
+  if ($account->data['store_search_history'] != 1) {
+    return;
+  }
+
+  // Store the search history.
+  $search_history = isset($account->data['search_history']) ? $account->data['search_history'] : array();
+  $search_history[] = $form_submit['values']['search_block_form'];
+  $edit['data']['search_history'] = $search_history;
+  user_save($account, $edit);
+  return;
+}
+
+
+/**
+ * Implements hook_user_presave().
+ *
+ * Saves user setting to store search history.
+ */
+function persons_user_presave(&$edit, $account, $category) {
+
+  // Save option to store search history.
+  if (isset($edit['store_search_history'])) {
+    $edit['data']['store_search_history'] = $edit['store_search_history'];
+  }
+
+  return;
+}
+
+
+/**
+ * Implements hook_user_view().
+ *
+ * For more information see:
+ * http://api.drupal.org/api/drupal/modules--user--user.api.php/function/hook_user_view/7
+ */
+function persons_user_view($account, $view_mode, $langcode) {
+
+  // Render content as a list.
+  if (is_array($account->data['search_history'])) {
+    foreach ($account->data['search_history'] as $value) {
+      $items[] = l($value, 'search/node/' . $value);
+    }
+  }
+  if (count($items) > 0) {
+    $account->content['search_history'] = array(
+      '#theme' => 'item_list',
+      '#items' => $items,
+      '#title' => t('Search history'),
+      '#weight' => 10,
+    );
+  }
+  return;
+}
+
+
+/**
+ * Implements hook_user_view_alter().
+ *
+ * For more information see:
+ * http://api.drupal.org/api/drupal/modules--user--user.api.php/function/hook_user_view_alter/7
+ */
+function persons_user_view_alter(&$build) {
+  $build['summary']['member_for']['#title'] = 'Really special person for:';
+  return;
+}
+
+
+/**
+ * Implements hook_permission().
+ */
+function persons_permission() {
+  return array(
+    'view search history' => array(
+      'title' => t('View search history'),
+    ),
+    'clear all user search history' => array(
+      'title' => t('Clear all user search history'),
+      'description' => t('Clear any user search history through the bulk operations tool.'),
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function persons_menu() {
+  // Module settings.
+  $items['persons/search-history'] = array(
+    'title' => 'Search history',
+    'description' => 'View user search history',
+    'page callback' => 'persons_search_history_page',
+    'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+
+/**
+ * Menu callback; Demonstrates using 403 access denied.
+ */
+function persons_search_history_page() {
+  global $user;
+  if (!user_access('view search history')) {
+    return MENU_ACCESS_DENIED;
+  }
+  // Render content as a list.
+  if (is_array($user->data['search_history'])) {
+    foreach ($user->data['search_history'] as $value) {
+      $items[] = l($value, 'search/node/' . $value);
+    }
+  }
+  if (count($items) > 0) {
+    $build['search_history'] = array(
+      '#theme' => 'item_list',
+      '#items' => $items,
+      '#title' => t('Search history'),
+      '#weight' => 10,
+    );
+  }
+  return $build;
+}
+
+
+/**
+ * Implements hook_user_login().
+ *
+ * For more information, see:
+ * http://api.drupal.org/api/drupal/modules--user--user.api.php/function/hook_user_login/7
+ */
+function persons_user_login(&$edit, $account) {
+  $message = t('Your search history is currently being saved and displayed on your user page.');
+  if ($account->data['store_search_history'] != 1) {
+    $message = t('You are currently not saving user history, but you can change this on your !link', array('!link' => l('user account page', 'user/' . $account->uid)));
+  }
+  drupal_set_message($message);
+  return;
+}
+
+
+/**
+ * Implement hook_user_logout().
+ * 
+ * For more information, see:
+ * http://api.drupal.org/api/drupal/modules--user--user.api.php/function/hook_user_logout/7
+ */
+function persons_user_logout($account) {
+  drupal_set_message(t('Thanks for visiting, come again!'));
+}
