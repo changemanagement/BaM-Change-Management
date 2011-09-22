@@ -101,3 +101,23 @@ function assets_validate_not_in_filename(&$file, $string = 'test.') {
   }
   return $errors;
 }
+
+
+/**
+ * Submit function for unmanaged file form.
+ */
+function assets_unmanaged_file_form_submit($form, &$form_state) {
+  
+  // Check if a file was uploaded.
+  if ($file = $form_state['values']['unmanaged_file']) {
+    
+    // Create the directory if it doesn't exist
+    $directory = 'public://assets/unmanaged';
+    file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+    
+    // Copy the file over.
+    $filename = file_unmanaged_copy($file->uri, $directory, FILE_EXISTS_REPLACE);
+    
+    drupal_set_message(t("Your file has been uploaded!"));
+  }
+}
