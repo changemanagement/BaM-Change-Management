@@ -1,0 +1,16 @@
+Update Script
+-------------------
+This is a live document to list configuration and content changes that should be made for the next revision. These should be listed in chronological order from top to bottom. When a release is made, then the "Next Release" section should be re-labeled to the name of the release, and a new "Next Release" section should be added to the top.
+
+Next Release
+-------------------
+- Install the "Example blog feature" feature module.
+- Run selenium test "create-about-us-page.html"
+- Run selenium test "added-term-plyable-to-tags.html"
+
+
+1.4 (example)
+-------------------
+- Run selenium test "create-first-blog-post.php".
+- Revert the feature "example_blog_feature".
+- Add a new user with admin role, with username "rhonda", email "rhonda@example.com", password "somepass".
