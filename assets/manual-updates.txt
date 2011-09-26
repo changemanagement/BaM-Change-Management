@@ -7,6 +7,11 @@ Next Release
 - Install the "Example blog feature" feature module.
 - Run selenium test "create-about-us-page.html"
 - Run selenium test "added-term-plyable-to-tags.html"
+- Add the following code to the top of your settings.php file:
+  $global_settings = dirname(__FILE__) . '/global.settings.php';
+  if (file_exists($global_settings)) {
+    include $global_settings;
+  }
 
 
 1.4 (example)
