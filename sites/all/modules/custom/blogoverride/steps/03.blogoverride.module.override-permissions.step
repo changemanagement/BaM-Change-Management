@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * Demonstrates how to override components in a feature module.
+ *
+ * Several of these overrides can be done as a new feature using the Features Overrides
+ * module: http://drupal.org/project/features_override.
+ */
+
+
+/**
+ * Implements hook_boxes_box_load_alter().
+ */
+function blogoverride_boxes_box_load_alter(&$box, $delta) {
+  switch ($delta) {
+    case 'about_the_blog':
+      $box->title = 'This is an altered box title';
+      break;
+  }
+}
+
+
+/**
+ * Implements hook_context_load_alter().
+ *
+ * Changing the position of the box from the right to left-hand column.
+ */
+function blogoverride_context_load_alter(&$context) {
+  $context->reactions['block']['blocks']['boxes-about_the_blog']['region'] = 'sidebar_first';
+}
+
+
+/**
+ * Implements hook_user_default_permissions_alter().
+ *
+ * Note that this alters the feature module, not permissions directly. So you need
+ * to revert the feature to bring these changes in. This will cause the feature
+ * module to always be in an 'overridden' state.
+ */
+function blogoverride_user_default_permissions_alter(&$permissions) {
+  if (isset($permissions['create blog_entry content'])) {
+    $permissions['create blog_entry content']['roles'] = array('blog editor', 'administrator');
+  }
+}

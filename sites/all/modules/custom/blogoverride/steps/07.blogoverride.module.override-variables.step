@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * @file
+ * Demonstrates how to override components in a feature module.
+ *
+ * Several of these overrides can be done as a new feature using the Features Overrides
+ * module: http://drupal.org/project/features_override.
+ */
+
+
+/**
+ * Implements hook_boxes_box_load_alter().
+ */
+function blogoverride_boxes_box_load_alter(&$box, $delta) {
+  switch ($delta) {
+    case 'about_the_blog':
+      $box->title = 'This is an altered box title';
+      break;
+  }
+}
+
+
+/**
+ * Implements hook_context_load_alter().
+ *
+ * Changing the position of the box from the right to left-hand column.
+ */
+function blogoverride_context_load_alter(&$context) {
+  $context->reactions['block']['blocks']['boxes-about_the_blog']['region'] = 'sidebar_first';
+}
+
+
+/**
+ * Implements hook_user_default_permissions_alter().
+ *
+ * Note that this alters the feature module, not permissions directly. So you need
+ * to revert the feature to bring these changes in. This will cause the feature
+ * module to always be in an 'overridden' state.
+ */
+function blogoverride_user_default_permissions_alter(&$permissions) {
+  if (isset($permissions['create blog_entry content'])) {
+    $permissions['create blog_entry content']['roles'] = array('blog editor', 'administrator');
+  }
+}
+
+
+/**
+ * Implements hook_views_pre_build().
+ *
+ * Knowing where to alter a view's options array can be tricky and usually takes some
+ * research or trial and error. Below are a few examples.
+ */
+function blogoverride_views_pre_build(&$view) {
+  switch ($view->name) {
+    case 'blog_view':
+      $view->display['default']->handler->options['title'] = 'Overridden Blog Title';
+      $view->display['default']->handler->options['pager']['options']['items_per_page'] = 1;
+      $view->display['page']->handler->options['use_pager'] = 0;
+      if ($view->current_display == 'page') {
+        $view->use_ajax = 1;
+      }
+      break;
+  }
+}
+
+
+/**
+ * Implements hook_views_query_alter().
+ *
+ * If you need to change a query produced by Views, the Drupal 7 database API makes
+ * it very easy to fine-tune or override a query.
+ */
+function blogoverride_views_query_alter(&$view, &$query) {
+  //$query->where[0]['conditions'][1]['value'][0] = 'page';
+  $query->orderby[0]['direction'] = 'ASC';
+}
+
+
+/**
+ * Implements hook_menu_link_alter().
+ *
+ * This gets triggered when a custom menu item is saved. Because it overrides the actual value
+ * of the menu item, a feature module that is being overridden this way will always show
+ * a status of 'Overridden'. Menu items supplied another way, say through the Views module,
+ * have other methods of overridding.
+ *
+ * Another method would be to create a new, custom menu and use Context to display the new
+ * menu in place of the default one.
+ *
+ * For this, we're changing the custom menu item 'Blog' to say 'Overriddent blog menu title'.
+ *
+ * To trigger this, you must save the menu item.
+ */
+function blogoverride_menu_link_alter(&$item) {
+  if ($item['link_path'] == 'blog') {
+    $item['link_title'] = 'Overridden blog menu title';
+  }
+}
+
+
+/**
+ * Implements hook_strongarm_alter().
+ *
+ * In this case, we're changing a variable to not display the comment form below
+ * blog entries and to disable the preview button.
+ */
+function blogoverride_strongarm_alter(&$items) {
+  $items['comment_form_location_blog_entry']->value = 0;
+  $items['comment_preview_blog_entry']->value = 0;
+}
